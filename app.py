@@ -333,9 +333,10 @@ elif page == "🌈 Espectro de absorción":
         sigma = st.slider("Ancho de banda σ (nm)", 10, 100, 35, 5)
         use_noise = st.checkbox("Activar ruido instrumental", value=False)
         noise_sd = st.slider("Desviación del ruido (A)", 0.0, 0.08, 0.01, 0.005, disabled=not use_noise)
+        wavelengths_nm = np.arange(440.0, 800.0 + float(spectral_step) * 0.5, float(spectral_step))
         spectrum_df = generate_spectrum(
             lambda0, amplitude, sigma, noise_sd if use_noise else 0.0,
-            int(st.session_state["simulation_seed"]), step_nm=float(spectral_step)
+            int(st.session_state["simulation_seed"]), wavelengths_nm=wavelengths_nm
         )
         lmax, amax = find_lambda_max(spectrum_df)
         st.metric("λmax identificado", f"{lmax:.0f} nm")
