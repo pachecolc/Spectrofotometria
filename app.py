@@ -336,12 +336,11 @@ elif page == "🌈 Espectro de absorción":
             add_record("Espectro", "Simulación", {"λmax (nm)": lmax, "Amax": amax, "λ0 nominal (nm)": lambda0, "σ (nm)": sigma})
             st.success("Medición registrada.")
     with c2:
-        safe_image("absorption_spectrum.png")
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=spectrum_df["Wavelength"], y=spectrum_df["Absorbance"], mode="lines+markers", name="Espectro simulado"))
         fig.add_trace(go.Scatter(x=[lmax], y=[amax], mode="markers", marker=dict(size=13), name="λmax"))
         fig.add_vline(x=lmax, line_dash="dash", annotation_text=f"λmax={lmax:.0f} nm")
-        fig.update_layout(title="Absorbancia vs longitud de onda", xaxis_title="Longitud de onda (nm)", yaxis_title="Absorbancia", template="plotly_white")
+        fig.update_layout(title="Absorbancia vs longitud de onda", xaxis_title="Longitud de onda (nm)", yaxis_title="Absorbancia", template="plotly_white", height=520)
         st.plotly_chart(fig, use_container_width=True)
     st.download_button("Descargar espectro simulado (CSV)", spectrum_df.to_csv(index=False).encode("utf-8"), "espectro_simulado.csv", "text/csv")
     st.info("λmax corresponde a la longitud de onda donde la sustancia presenta la mayor absorbancia bajo las condiciones evaluadas. El objetivo no es solo encontrar un máximo, sino comprender que la sensibilidad depende de la longitud de onda utilizada.")
