@@ -317,27 +317,43 @@ elif page == "💡 Luz, transmitancia y absorbancia":
         st.plotly_chart(fig, use_container_width=True)
 
 elif page == "🌈 Espectro de absorción":
-    render_header("Espectro de absorción", "Barrido virtual de 440 a 800 nm en incrementos de 5 nm.")
+    render_header("Espectro de absorción", "Barrido virtual de 440 a 800 nm con resolución espectral seleccionable.")
     render_simulated_badge()
     st.caption("Datos simulados con fines educativos. El λmax obtenido aquí no debe interpretarse como un resultado experimental real de la práctica.")
     c1, c2 = st.columns([0.85, 1.6])
     with c1:
-        lambda0 = st.slider("Posición nominal del máximo λ0 (nm)", 440, 800, 575, 5)
+        spectral_step = st.selectbox(
+            "Paso espectral Δλ (nm)",
+            options=[15, 10, 5, 2, 1],
+            index=2,
+            help="Un Δλ menor aumenta la resolución del barrido. 15 nm reproduce el esquema original de la guía; 5 nm es el valor recomendado por defecto.",
+        )
+        lambda0 = st.slider("Posición nominal del máximo λ0 (nm)", 440, 800, 575, 1)
         amplitude = st.slider("Amplitud Amax simulada", 0.1, 2.0, 1.0, 0.05)
         sigma = st.slider("Ancho de banda σ (nm)", 10, 100, 35, 5)
         use_noise = st.checkbox("Activar ruido instrumental", value=False)
         noise_sd = st.slider("Desviación del ruido (A)", 0.0, 0.08, 0.01, 0.005, disabled=not use_noise)
-        spectrum_df = generate_spectrum(lambda0, amplitude, sigma, noise_sd if use_noise else 0.0, int(st.session_state["simulation_seed"]))
+        spectrum_df = generate_spectrum(
+            lambda0, amplitude, sigma, noise_sd if use_noise else 0.0,
+            int(st.session_state["simulation_seed"]), step_nm=float(spectral_step)
+        )
         lmax, amax = find_lambda_max(spectrum_df)
         st.metric("λmax identificado", f"{lmax:.0f} nm")
         st.metric("Amax", f"{amax:.3f}")
-        st.session_state["spectrum_state"] = {"lambda_max_nm": lmax, "amax": amax, "data": spectrum_df}
+        st.caption(f"Δλ = {spectral_step} nm | {len(spectrum_df)} puntos entre 440 y 800 nm")
+        st.session_state["spectrum_state"] = {
+            "lambda_max_nm": lmax, "amax": amax, "spectral_step_nm": spectral_step, "data": spectrum_df
+        }
         if st.button("Registrar medición", key="record_spectrum"):
-            add_record("Espectro", "Simulación", {"λmax (nm)": lmax, "Amax": amax, "λ0 nominal (nm)": lambda0, "σ (nm)": sigma})
+            add_record("Espectro", "Simulación", {"λmax (nm)": lmax, "Amax": amax, "λ0 nominal (nm)": lambda0, "σ (nm)": sigma, "Δλ (nm)": spectral_step})
             st.success("Medición registrada.")
     with c2:
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=spectrum_df["Wavelength"], y=spectrum_df["Absorbance"], mode="lines+markers", name="Espectro simulado"))
+        marker_size = 5 if spectral_step >= 5 else 3
+        fig.add_trace(go.Scatter(
+            x=spectrum_df["Wavelength"], y=spectrum_df["Absorbance"], mode="lines+markers",
+            marker=dict(size=marker_size), name=f"Espectro simulado (Δλ={spectral_step} nm)"
+        ))
         fig.add_trace(go.Scatter(x=[lmax], y=[amax], mode="markers", marker=dict(size=13), name="λmax"))
         fig.add_vline(x=lmax, line_dash="dash", annotation_text=f"λmax={lmax:.0f} nm")
         fig.update_layout(title="Absorbancia vs longitud de onda", xaxis_title="Longitud de onda (nm)", yaxis_title="Absorbancia", template="plotly_white", height=520)
