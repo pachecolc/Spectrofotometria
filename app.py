@@ -317,7 +317,7 @@ elif page == "💡 Luz, transmitancia y absorbancia":
         st.plotly_chart(fig, use_container_width=True)
 
 elif page == "🌈 Espectro de absorción":
-    render_header("Espectro de absorción", "Barrido virtual de 440 a 800 nm en incrementos de 15 nm.")
+    render_header("Espectro de absorción", "Barrido virtual de 440 a 800 nm en incrementos de 5 nm.")
     render_simulated_badge()
     st.caption("Datos simulados con fines educativos. El λmax obtenido aquí no debe interpretarse como un resultado experimental real de la práctica.")
     c1, c2 = st.columns([0.85, 1.6])
